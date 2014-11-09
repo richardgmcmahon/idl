@@ -769,8 +769,8 @@ for i=0, ncodes-1 do begin
     psym=6
     if not keyword_set(title) then $
      title = label + ' VHS Progress: ' + infile
-    if n_elements(runs)  gt 0 then title = label + title + '  ' + run_title
-    if keyword_set(survey) then title = label + survey + '  ' + title
+    if n_elements(runs)  gt 0 then title = title + '  ' + run_title
+    if keyword_set(survey) then title = survey + '  ' + title
     splog, traceback()
     splog, 'run_title: ', run_title
     splog, 'title:     ', title
@@ -944,7 +944,7 @@ splog, 'title:     ', title
 
 
 if keyword_set(survey) then title = survey + ' ' + title
-if n_elements(runs)  gt 0 then title = label + title + '  ' + run_title
+if n_elements(runs)  gt 0 then title = title + '  ' + run_title
 if keyword_set(publication) and not keyword_set(title) then title=''
 
 xtitle='RA (hours)'
