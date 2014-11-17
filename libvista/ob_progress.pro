@@ -117,8 +117,8 @@ if keyword_set(vstfile) then begin
 endif
 
 if keyword_set(desfile) then begin
-   ;desfile='/home/rgm/Projects/DES/Footprint/des_completed_20140207.fits'
-   desfile='/home/rgm/Projects/DES/Footprint/des_footprint_20140207.fits'
+   desfile='/home/rgm/Projects/DES/Footprint/des_completed_20140207.fits'
+   ;desfile='/home/rgm/Projects/DES/Footprint/des_footprint_20140207.fits'
 endif
 if keyword_set(desfile) then begin
     infile_des=desfile
@@ -970,6 +970,7 @@ if keyword_set(desfile) then begin
   ;oplot, xdata, ydata, psym=psym, color=fsc_color('red')
 endif
 
+
 if keyword_set(vstfile) then begin
   xdata=vsttiles.ra/15.0
   ydata=vsttiles.dec
@@ -1379,6 +1380,28 @@ legend=[legend,'Status X OBs: ' + string(n_status_x,'(i6)')]
 
 if not keyword_set(publication) then al_legend, legend, /clear, charsize=1.2, /right_legend,/top_legend
 
+
+overplot='True'
+if keyword_set(overplot) then begin
+
+  if keyword_set(desfile) then begin
+    xdata=destiles.ra/15.0
+    ydata=destiles.dec
+    psym=6
+    oplot, xdata, ydata, psym=psym, color=fsc_color('blue'), symsize=0.5
+  endif
+
+  if keyword_set(vstfile) then begin
+    xdata=vsttiles.ra/15.0
+    ydata=vsttiles.dec
+    psym=6
+    ;psym=3
+    oplot, xdata, ydata, psym=psym, color=fsc_color('blue'), symsize=0.5
+    ;oplot, xdata, ydata, psym=psym, color=fsc_color('red')
+  endif
+
+endif
+
 ;png_write
 splog,traceback()
 pause, batch=batch, plotfile=plotfile
@@ -1641,7 +1664,7 @@ legend=[legend, 'Completed  OBs: ' + string(ndata,'(i5)')]
 ipos=strpos(data.ob_status, 'C')
 itest = where(ipos lt 0, count)
 message, /inf,'Number of incomplete OBs: ' + string(count)
-if count gt 0 then begin
+if count gt 1 then begin
   xdata=fix(data[itest].ra)
   plothist, xdata, color=fsc_color('red'), halfbin=0, /overplot
   ndata=n_elements(xdata)
