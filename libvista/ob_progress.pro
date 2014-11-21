@@ -89,7 +89,13 @@ compile_opt idl2
 
 common com_splog, loglun, fullprelog
 
-if keyword_set(desfile) then print, 'desfile: ', desfile
+if keyword_set(desfile) then begin
+  print, 'desfile: ', desfile
+  test=file_test(desfile)
+  if test eq 0 then begin
+    message,'desfile does not exist'
+  endif
+endif
 
 get_datestamp, datestamp
 
@@ -117,13 +123,15 @@ if keyword_set(vstfile) then begin
 endif
 
 if keyword_set(desfile) then begin
-   desfile='/home/rgm/Projects/DES/Footprint/des_completed_20140207.fits'
+   ;desfile='/home/rgm/Projects/DES/Footprint/des_completed_20140207.fits'
    ;desfile='/home/rgm/Projects/DES/Footprint/des_footprint_20140207.fits'
 endif
+
 if keyword_set(desfile) then begin
     infile_des=desfile
     test=file_test(infile_des)
     if test eq 0 then infile_des='/data/des/SVA1/SVA1_COADD_GRIZY_tiles.fits'
+    print, 'Reading: ', infile_des
     destiles=mrdfits(infile_des,1,hr)
     itest=where(destiles.ra lt 0, count)
     if count gt 0 then destiles[itest].ra=destiles[itest].ra + 360.0
