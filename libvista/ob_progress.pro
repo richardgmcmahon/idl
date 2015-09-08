@@ -1,5 +1,5 @@
 ;$Id: ob_progress.pro,v 1.4 2011/11/12 12:46:58 rgm Exp rgm $
-pro ob_progress, infile=infile, vsa=vsa, $
+pro ob_progress, infile=infile, vsa=vsa, wfau=wfau, wsa=wsa, casu=casu, $
  verbose=verbose, debug=debug, pause=pause, $
  ps=ps, $
  incomplete=incomplete, survey=survey, runs=runs, $
@@ -15,6 +15,7 @@ pro ob_progress, infile=infile, vsa=vsa, $
  clean_des=clean_des, $
  desfoot=desfoot, $
  desfile=desfile, $
+ despolygon=despolygon,  overplot_despolygon=overplot_despolygon, $
  vstatlas=vstatlas, vstfile=vstfile, $
  plotpath=plotpath, label=label, $
  nofootprints=nofootprints, $
@@ -25,6 +26,8 @@ pro ob_progress, infile=infile, vsa=vsa, $
  spt=spt, $
  viking=viking, video=video, $
  pngsize=pngsize, $
+ filtername=filtername, $
+ dqc=dqc, $
  extra=extra
 
 ;+
@@ -97,10 +100,30 @@ if keyword_set(desfile) then begin
   endif
 endif
 
+if keyword_set(despolygon) then begin
+  splog,traceback()
+  despolyfile='/home/rgm/soft/des/round13-poly.txt'
+  print, 'despolyfile: ', despolyfile
+  test=file_test(despolyfile)
+  if test eq 0 then begin
+    message,'despolygon file does not exist'
+  endif
+  format='(d,d)' 
+  readcol, despolyfile, format=format, $
+   ra_despolygon, dec_despolygon
+  ra_despolygon=ra_despolygon/15.0
+  print, 'RA range:  ', minmax(ra_despolygon)
+  print, 'Dec range: ', minmax(dec_despolygon)
+endif
+
 get_datestamp, datestamp
 
 if not keyword_set(label) then label=""
 if not keyword_set(dqc) then dqc=0
+if not keyword_set(casu) then casu=0
+if not keyword_set(vsa) then vsa=0
+if not keyword_set(wfau) then wfau=0
+if not keyword_set(filtername) then filtername=""
 
 
 ; read in some extra data
@@ -111,7 +134,7 @@ if keyword_set(extra) then begin
   ra_extra=ra_extra/15.0
   print, 'RA extra range:  ', minmax(ra_extra)
   print, 'Dec extra range: ', minmax(dec_extra)
-  pause
+  pause, batch=batch
 endif
 
 
@@ -119,7 +142,7 @@ if keyword_set(vstfile) then begin
   infile_vst=vstfile
   vsttiles=mrdfits(infile_vst,1,hr)
   structure_info, vsttiles
-  pause
+  pause, batch=batch
 endif
 
 if keyword_set(desfile) then begin
@@ -132,11 +155,28 @@ if keyword_set(desfile) then begin
     test=file_test(infile_des)
     if test eq 0 then infile_des='/data/des/SVA1/SVA1_COADD_GRIZY_tiles.fits'
     print, 'Reading: ', infile_des
-    destiles=mrdfits(infile_des,1,hr)
+    ipos=strpos(infile_des, 'txt')
+    if ipos gt 0 then begin
+      format='(d,d)' 
+      readcol, infile_des, format=format, ra, dec
+      struct = {ra:0d0,dec:0d0}
+      destiles = replicate(struct, n_elements(ra))
+      destiles.ra=ra
+      destiles.dec=dec
+      print, 'minmax(destiles.ra):  ', minmax(destiles.ra)
+      print, 'minmax(destiles.dec): ', minmax(destiles.dec)
+    endif
+
+
+    ipos=strpos(infile_des, 'fits')
+    if ipos gt 0 then begin
+      destiles=mrdfits(infile_des,1,hr)
+    endif
+
     itest=where(destiles.ra lt 0, count)
     if count gt 0 then destiles[itest].ra=destiles[itest].ra + 360.0
     structure_info, destiles
-    pause
+
 endif
 
 ; read in the VIKING DQC file
@@ -148,7 +188,7 @@ if keyword_set(viking) then begin
   viking=mrdfits(infile_viking,1,hr)
   print, minmax(viking.ra)
   print, minmax(viking.dec)
-  pause
+  pause, batch=batch
 
 endif
 
@@ -160,7 +200,7 @@ if keyword_set(video) then begin
   video=mrdfits(infile_viking,1,hr)
   print, minmax(video.ra)
   print, minmax(video.dec)
-  pause
+  pause, batch=batch
 
 endif
 
@@ -278,7 +318,7 @@ if format eq 'portal' then begin
   ;endif
 
   plotfile=plotpath + 'ob_progress_radec_' + date + survey + run_title + $
-   '_' + label + datestamp 
+   '_' + label + filtername + datestamp 
 
   IF keyword_set(ps) THEN begin
     plotfile= plotfile + '.ps'
@@ -335,9 +375,14 @@ printf, ilun_sumfile,'# infile = ',infile
 printf, ilun_sumfile, '# ',traceback()
 printf, ilun_sumfile, format='(a)', '# i+1, i, m1sort, m2sort, ob_id1, ob_status1, ob_id2, obstatus2, dra, ddec, radec1, radec2, ob_name1, od_name1, ob_name2, od_name2'
 
+print,'dqc: ', dqc
+print,'vsa: ', vsa
+splog, traceback()
+
 if format eq 'dqc' then begin
   splog, traceback()
-  plotfile=plotpath + '/ob_progress_radec_' + filehead + label + '_' + datestamp 
+  plotfile= $
+   plotpath + '/ob_progress_radec_' + filehead + label + filtername + '_' + datestamp 
   IF keyword_set(ps) THEN begin
     plotfile= plotfile + '.ps'
     colorpsopen,plotfile,cmd
@@ -357,11 +402,38 @@ if format eq 'dqc' then begin
     splog,traceback()
     message,'Exited'
   endif
+
   data=mrdfits(infile,1,hr)
   structure_info, data, /sort
+
   if keyword_set(vsa) then begin
-    data.ra=data.ra*!radeg
-    data.dec=data.dec*!radeg
+    itag_ra=tag_indx(data,'ra')
+    if itag_ra ge 0 then data.ra=data.ra*!radeg
+    if itag_ra lt 0 then begin
+      itag_rabase=tag_indx(data,'rabase')
+      if itag_rabase ge 0 then begin
+         addstruct = {ra:0d0}
+         addstruct = replicate(addstruct, n_elements(data))
+         newstruct = struct_addtags(data, addstruct)
+         data=newstruct
+         data.ra=data.rabase*15
+      endif
+    endif
+
+
+    itag_dec=tag_indx(data,'dec')
+    if itag_dec ge 0 then data.dec=data.dec*!radeg
+    if itag_dec lt 0 then begin
+      itag_decbase=tag_indx(data,'decbase')
+      if itag_decbase ge 0 then begin
+         addstruct = {dec:0d0}
+         addstruct = replicate(addstruct, n_elements(data))
+         newstruct = struct_addtags(data, addstruct)
+         data=newstruct
+         data.dec=data.decbase
+      endif
+    endif
+
   endif
 
   if keyword_set(pawprints) then begin
@@ -430,7 +502,7 @@ if format eq 'dqc' then begin
   endif
 
   splog, traceback()
-  if not keyword_set(vsa) then begin
+  ;if not keyword_set(vsa) then begin
   ; unique filenames
   itest=UNIQ(data.filename, SORT(data.filename))
   n_filename_unique=n_elements(itest)
@@ -445,6 +517,15 @@ if format eq 'dqc' then begin
   printf, ilun_sumfile, logstring
   splog, logstring
 
+  itag_mjd=tag_indx(data,'mjd')
+  if itag_mjd lt 0 then   itag_mjd=tag_indx(data,'mjdobs')
+  mjd_min=min(data.(itag_mjd))  
+  mjd_max=max(data.(itag_mjd))  
+
+  message,/inf, $
+   'MJD: ' + STRING(mjd_min) + STRING(mjd_max) 
+  message,/inf, 'ISO date: ' + $
+   MJD_ISODATE(mjd_min) + '  ' + MJD_ISODATE(mjd_max)
 
 
   structure_info, data, /sort
@@ -452,48 +533,56 @@ if format eq 'dqc' then begin
   splog, 'Number of records: ',n_elements(data)
   survey_test='DES'
   ob_select_survey, data=data, survey=survey_test, $
-   ilun_sumfile=ilun_sumfile, $
+   ilun_sumfile=ilun_sumfile, filtername=filtername, $
    index=index, $
    n_ob=n_ob_des, ntiles_all=ntiles_des, $
    ntiles_y=ntiles_y_des, ntiles_j=ntiles_j_des, $
    ntiles_h=ntiles_h_des, ntiles_k=ntiles_k_des
-
+  splog, traceback()
+  splog, 'Number of records: ',n_elements(data)
+  pause, batch=batch
 
   splog, traceback()
   survey_test='ATL'
   splog, 'Number of records: ',n_elements(data)
   ob_select_survey, data=data, survey=survey_test, $
-   ilun_sumfile=ilun_sumfile, $
+   ilun_sumfile=ilun_sumfile, filtername=filtername, $
    index=index, $
    n_ob=n_ob_atlas, ntiles_all=ntiles_atlas, $
    ntiles_y=ntiles_y_atlas, ntiles_j=ntiles_j_atlas, $
    ntiles_h=ntiles_h_atlas, ntiles_k=ntiles_k_atlas
-
+  pause, batch=batch
 
   splog, traceback()
   survey_test='GPS'
   splog, 'Number of records: ',n_elements(data)
   ob_select_survey, data=data, survey=survey_test, $
-   ilun_sumfile=ilun_sumfile, $
+   ilun_sumfile=ilun_sumfile, filtername=filtername, $
    index=index, $
    n_ob=n_ob_gps, ntiles_all=ntiles_gps, $
    ntiles_y=ntiles_y_gps, ntiles_j=ntiles_j_gps, $
    ntiles_h=ntiles_h_gps, ntiles_k=ntiles_k_gps
-
+  pause, batch=batch
 
   structure_info, data, /sort
   splog, traceback()
   splog, 'Total number of frames: ',ntiles_des + ntiles_atlas + ntiles_gps
   splog, 'Total number of OBs: ',n_ob_des + n_ob_atlas + n_ob_gps
   splog, 'Number of records: ',n_elements(data)
+  pause, batch=batch
 
   ; unique filenames
   itest=UNIQ(data.filename, SORT(data.filename))
   n_filename_unique=n_elements(itest)
 
   splog, 'Number of unique filenames: ',n_filename_unique
-  itest=UNIQ(data.filtname, SORT(data.filtname))
-  wavebands=data[itest].filtname
+
+  itag_filtername=tag_indx(data,'filtername')
+  if itag_filtername lt 0 then itag_filtername=tag_indx(data,'filtname')
+
+
+  itest=UNIQ(data.(itag_filtername), SORT(data.(itag_filtername)))
+  wavebands=data[itest].(itag_filtername)
   splog, 'Wavebands: ',wavebands
   nbands=n_elements(wavebands)
   ntiles_y=0
@@ -501,7 +590,7 @@ if format eq 'dqc' then begin
   ntiles_h=0
   ntiles_k=0
   for i=0, nbands-1 do begin
-    itest=where(data.filtname eq wavebands[i], count)
+    itest=where(data.(itag_filtername) eq wavebands[i], count)
     splog,i,': ',wavebands[i],': ',count
     if strpos(wavebands[i],'Y') ge 0 then ntiles_y=count
     if strpos(wavebands[i],'J') ge 0 then ntiles_j=count
@@ -521,7 +610,7 @@ if format eq 'dqc' then begin
   endfor
 
 
-  endif
+  ;endif
 
 
   if keyword_set(vst) then begin
@@ -553,10 +642,13 @@ if format eq 'dqc' then begin
 
   ;pause
 
+  splog, traceback()
 endif
 
+splog, traceback()
 
 if format ne 'dqc' then begin
+  splog, traceback()
   ; convert to a structure
   struct_def = { $
 ra: 0.0d, $
@@ -876,7 +968,8 @@ if keyword_set(dqc) then begin
 
   legend='Tile statistics ' 
   if keyword_set(pawprints) then  legend='Pawprint statistics ' 
-  if not keyword_set(vst) and not keyword_set(dqc) then begin
+  ;if not keyword_set(vst) and not keyword_set(dqc) then begin
+  if not keyword_set(vst) and not keyword_set(vsa) then begin
 
     legend=[legend,'---ALL--DES-ATLAS--GPS']
 
@@ -921,6 +1014,18 @@ if keyword_set(dqc) then begin
   legend=[legend,' Unique filenames: ' + string(n_filename_unique,'(i6)') ]
   if not keyword_set(publication) then al_legend, legend, /clear, /right, charsize=1.2
   ob_legend = legend
+
+  date_legend = 'Date range: '+string(mjd_iso(mjd_min))+$
+  ' : '+string(mjd_iso(mjd_max))
+  if not keyword_set(publication) then $
+    al_legend, date_legend, /bottom, /left, charsize=1.0
+
+  if keyword_set(despolygon) then begin
+    splog,traceback()
+    plot_despolygon, ra_despolygon, dec_despolygon, $
+     des_polyfill=des_polyfill
+  endif
+
   pause, batch=batch, plotfile=plotfile
 
   goto, exit
@@ -968,7 +1073,6 @@ plot, xdata, ydata, psym=psym, charsize=charsize, $
 IF not keyword_set(ps) THEN  plotid, /right
 
 
-
 if keyword_set(desfile) then begin
   xdata=destiles.ra/15.0
   ydata=destiles.dec
@@ -978,6 +1082,12 @@ if keyword_set(desfile) then begin
   ;oplot, xdata, ydata, psym=psym, color=fsc_color('red')
 endif
 
+
+if keyword_set(overplot_despolygon) then begin
+  splog,traceback()
+  plot_despolygon, ra_despolygon, dec_despolygon, $
+   des_polyfill=des_polyfill
+endif
 
 if keyword_set(vstfile) then begin
   xdata=vsttiles.ra/15.0
@@ -1410,6 +1520,19 @@ if keyword_set(overplot) then begin
 
 endif
 
+if keyword_set(despolygon) and keyword_set(overplot_despolygon) then begin
+  splog,traceback()
+  polyfill, ra_despolygon, dec_despolygon, col=fsc_color('blue'), noclip=0
+  ndata=n_elements(ra_despolygon)
+  xdata=ra_despolygon*0.0
+  for i=0, ndata-1 do begin
+    xdata[i]=24.0+ra_despolygon[i]
+  endfor
+  polyfill, xdata, dec_despolygon, col=fsc_color('blue'), noclip=0
+  splog,traceback()
+endif
+
+
 ;png_write
 splog,traceback()
 pause, batch=batch, plotfile=plotfile
@@ -1502,7 +1625,7 @@ splog,'n_elements(nmembers1): ',n_elements(nmembers1)
 xdata=nmembers1
 
 plotfile='ob_progress_groups_' + date + survey + run_title + $
-   '_' + label + datestamp + '.png'
+   '_' + label + datestamp + filtername + '.png'
 
 print, min(xdata), max(xdata) 
 if max(xdata)-max(xdata) then begin
@@ -1518,7 +1641,8 @@ itest=UNIQ(data.exectime, SORT(data.exectime))
 n_exectimes=n_elements(itest)
 print, '# Unique Execution times '
 for i=0, n_exectimes - 1 do begin
-    print, i-0, data[itest[i]].exectime
+    icount=where(data.exectime eq data[itest[i]].exectime, count)
+    print, i-0, data[itest[i]].exectime, count
 endfor
 
 exectime_save=data.exectime
@@ -1562,6 +1686,7 @@ endif
 IF not keyword_set(ps) THEN plotfile = plotfile + '.png'
 
 xrange=rarange
+xtitle='Right Ascension (hours)'
 ytitle='Execution time (seconds)'
 plot, xdata, ydata,psym=psym, charsize=charsize, $
  title=title, xtitle=xtitle, ytitle=ytitle, $
@@ -1808,5 +1933,38 @@ exit:
 
 close,ilun_sumfile
 close,ilun_htmlfile
+
+end
+
+pro plot_despolygon, ra_despolygon, dec_despolygon, $
+ des_polyfill=des_polyfill
+
+  print, 'n_elements(ra_despolygon):  ', n_elements(ra_despolygon)
+  print, 'n_elements(dec_despolygon): ', n_elements(dec_despolygon)
+
+  if keyword_set(des_polyfill) then begin
+    polyfill, ra_despolygon, dec_despolygon, col=fsc_color('blue'), noclip=0
+  endif
+
+  if not keyword_set(des_polyfill) then begin
+    oplot, ra_despolygon, dec_despolygon, col=fsc_color('blue'), thick=2
+  endif
+
+  ndata=n_elements(ra_despolygon)
+  xdata=ra_despolygon*0.0
+  for i=0, ndata-1 do begin
+    xdata[i]=24.0+ra_despolygon[i]
+  endfor
+
+  if keyword_set(des_polyfill) then begin
+    polyfill, xdata, dec_despolygon, col=fsc_color('blue'), noclip=0
+  endif
+
+  if not keyword_set(des_polyfill) then begin
+    oplot, xdata, dec_despolygon, col=fsc_color('blue'), thick=2
+  endif
+
+  xyouts, 7.0, -85.0, 'DES: Round13-poly (Aug 20, 2013)', $
+   charsize=1.4, color=fsc_color('Blue')
 
 end
