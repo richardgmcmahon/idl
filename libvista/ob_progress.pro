@@ -100,6 +100,7 @@ if keyword_set(desfile) then begin
   endif
 endif
 
+despolygon=1
 if keyword_set(despolygon) then begin
   splog,traceback()
   despolyfile='/home/rgm/soft/des/round13-poly.txt'
@@ -111,10 +112,13 @@ if keyword_set(despolygon) then begin
   format='(d,d)' 
   readcol, despolyfile, format=format, $
    ra_despolygon, dec_despolygon
+
   ra_despolygon=ra_despolygon/15.0
   print, 'RA range:  ', minmax(ra_despolygon)
   print, 'Dec range: ', minmax(dec_despolygon)
 endif
+
+pause
 
 get_datestamp, datestamp
 
@@ -1082,6 +1086,11 @@ if keyword_set(desfile) then begin
   ;oplot, xdata, ydata, psym=psym, color=fsc_color('red')
 endif
 
+if keyword_set(despolygon) then begin
+    splog,traceback()
+    plot_despolygon, ra_despolygon, dec_despolygon, $
+     des_polyfill=des_polyfill
+endif
 
 if keyword_set(overplot_despolygon) then begin
   splog,traceback()
@@ -1097,8 +1106,6 @@ if keyword_set(vstfile) then begin
   oplot, xdata, ydata, psym=psym, color=fsc_color('blue'), symsize=0.5
   ;oplot, xdata, ydata, psym=psym, color=fsc_color('red')
 endif
-
-
 
 splog, traceback()
 splog, 'run_title: ', run_title
@@ -1365,6 +1372,13 @@ legend=[legend, 'Completed OBs: ' + string(ndata,'(i6)')]
 if not keyword_set(polyfill) then $
  ;oplot, xdata, ydata, psym=psym, color=fsc_color('Dark Green')
  oplot, xdata, ydata, psym=psym, color=fsc_color('Green')
+
+if keyword_set(despolygon) then begin
+    splog,traceback()
+    plot_despolygon, ra_despolygon, dec_despolygon, $
+     des_polyfill=des_polyfill
+endif
+
 
 if keyword_set(polyfill) then $
  plot_vistatile, xdata=xdata, ydata=ydata
