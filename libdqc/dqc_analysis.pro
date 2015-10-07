@@ -220,9 +220,7 @@ if keyword_set(dr) then begin
   print,'Using date range: ',mjd_iso(mjdrange[0]),' : ',mjd_iso(mjdrange[1])
 endif
 
-
 if keyword_set(esoperiod) then begin
-
 
   upto_period=-1
   from_period=-1
@@ -243,18 +241,18 @@ if keyword_set(esoperiod) then begin
       if ipos ge 0 then from_period=1
     endif
     ipos=strpos(strlowcase(esoperiod), 'p')
-    esoperiod=strmid(esoperiod, ipos)
+    esoperiod_lower=strmid(esoperiod, ipos)
     message,/inf,'ESO period: ' + esoperiod
 
     ipos=strpos(strlowcase(esoperiod), 'p')
     print, 'ipos: ', ipos
     if ipos gt 0 then upto_period=1
-    esoperiod=strmid(esoperiod, ipos)
+    esoperiod_lower=strmid(esoperiod, ipos)
     message,/inf,'ESO period: ' + esoperiod
 
   endif
 
-  pause
+  pause,batch=batch
 
 
   if nperiods eq 2 then begin
@@ -262,12 +260,11 @@ if keyword_set(esoperiod) then begin
     esoperiod_upper=esoperiod[1]
     splog, 'esoperiod_lower: ', esoperiod_lower
     splog, 'esoperiod_upper: ', esoperiod_upper
-    esoperiod=esoperiod_lower
   endif
 
-  pause
+  pause, batch=batch
 
-  set_mjdrange_vista, mjdrange, period=esoperiod, verbose=verbose
+  set_mjdrange_vista, mjdrange, period=esoperiod_lower, verbose=verbose
   message,/inf,'ESO Period date ranges: ' + esoperiod 
 
   if nperiods eq 2 then begin
@@ -275,7 +272,7 @@ if keyword_set(esoperiod) then begin
     mjdrange[1]=mjdrange_upper[1]
   endif
 
-  pause
+  pause, batch=batch
 
   if upto_period gt 0 then begin
     set_mjdrange_vista, mjdrange_test, period='dryrun'
@@ -296,7 +293,7 @@ if keyword_set(esoperiod) then begin
 endif
 
 
-pause
+pause, batch=batch
 
 end
 
@@ -433,7 +430,7 @@ charsize=1.4
 plothist,xdata,bin=bin,charsize=charsize,$
    title=title, $
    xtitle=xtitle
-pause
+pause, batch=batch
 
 ; analyze OBS Progam IDs and OB ids
 ; exclude the null/default vlaues 0f -9999
@@ -1153,7 +1150,7 @@ if keyword_set(esoperiod) then $
  title = esoperiod + ' ' + plotfile_survey + ': ' + title
 print,'wavebands: ', wavebands
 
-pause,/force
+pause, batch=batch
 
 for itagname=0, ntagnames-1 do begin
 
@@ -1524,10 +1521,10 @@ message, /inf, traceback()
 ;end
 
 if casu eq 1 then dqc_analysis_plot, data, /casu, $
- wavebands=wavebands
+ wavebands=wavebands, batch=batch
 
 if wsa eq 1 then dqc_analysis_plot, data, /wsa, $
- wavebands=wavebands
+ wavebands=wavebands, batch=batch
 
 exit:
 
@@ -1538,5 +1535,6 @@ message, /inf, traceback()
 end
 
 message, /inf, traceback()
+message, /inf, 'DQC filename completed: ' + filename
 
 end
