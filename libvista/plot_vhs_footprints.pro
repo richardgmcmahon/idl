@@ -245,12 +245,12 @@ if des eq 'Round82' then begin
   xdata=[45.0/15.0, 60.00/15.0, 60.00/15]
   ydata=[-25.0, -25.0, -40.0 ]
   oplot, xdata,ydata,color=fsc_color('Blue'), $
-   thick=2, linestyle=linestyle
+   thick=1, linestyle=linestyle
 
   xdata=[ (360.0-3.0)/15.0, (360.0-30.00)/15.0, (360.0-30.00)/15.0]
   ydata=[-25.0            , -25.0             , -40.0]
   oplot, xdata,ydata,color=fsc_color('Blue'), $
-   thick=2, linestyle=linestyle
+   thick=1, linestyle=linestyle
 
   ; DES-SPT-2012 
   ; 20h00 < RA < 07h00, -65< dec < -40
@@ -259,12 +259,12 @@ if des eq 'Round82' then begin
   xdata=[4.0,7.00,7.00,0.0]
   ydata=[-40.0,-40.0,-65.0,-65.0]
   oplot, xdata,ydata,color=fsc_color('Blue'), $
-   thick=2, linestyle=linestyle
+   thick=1, linestyle=linestyle
 
   xdata=[ 22.0, 20.00, 20.00,24.0]
   ydata=[-40.0, -40.0, -65.0,-65.0]
   oplot, xdata,ydata,color=fsc_color('Blue'), $
-   thick=2, linestyle=linestyle
+   thick=1, linestyle=linestyle
 
   xyouts, 7.0, -80.0, 'DES: Round82 (April 29, 2012)', $
    charsize=1.4, color=fsc_color('Blue')

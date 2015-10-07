@@ -27,7 +27,8 @@ pro plot_despolygon, ra_despolygon, dec_despolygon, $
     oplot, xdata, dec_despolygon, col=fsc_color('blue'), thick=2
   endif
 
+  ; charthick=2 is horrible
   xyouts, 7.0, -85.0, 'DES: Round13-poly (Aug 20, 2013)', $
-   charsize=1.4, color=fsc_color('Blue')
+   charsize=1.4, color=fsc_color('Blue'), charthick=1
 
 end
