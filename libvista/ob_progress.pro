@@ -1667,14 +1667,17 @@ xmin=min(xdata)
 xmax=max(xdata)
 xspan=xmax-xmin
 xrange=[xmin-(xspan/10.0), xmax+(xspan/10)]
-plothist, xdata, charsize=1.4, $
-  title=title, xtitle=xtitle, ytitle=ytitle, $
-  xrange=xrange
-plotid, /right
+print, 'xrange: ', xrange
+if xspan gt 0.1 then begin
+  plothist, xdata, charsize=1.4, $
+    title=title, xtitle=xtitle, ytitle=ytitle, $
+    xrange=xrange
+  plotid, /right
 
-plotfile= plotpath + $
- 'ob_progress_exectime_' + date + survey + run_title + '.png'
-pause, plotfile=plotfile, batch=batch
+  plotfile= plotpath + $
+   'ob_progress_exectime_' + date + survey + run_title + '.png'
+  pause, plotfile=plotfile, batch=batch
+endif
 
 ipos=strpos(data.ob_status, 'C')
 itest = where(ipos gt -1, count)
