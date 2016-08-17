@@ -61,8 +61,8 @@ p92_date_range=[[2013,10,1],[2014,3,31]]
 p93_date_range=[[2014,4,1],[2014,9,31]]
 p94_date_range=[[2014,10,1],[2015,3,31]]
 
-p94_date_range=[[2015,4,1],[2015,9,31]]
-p95_date_range=[[2015,10,1],[2016,3,31]]
+p95_date_range=[[2015,4,1],[2015,9,31]]
+p96_date_range=[[2015,10,1],[2016,3,31]]
 
 
 ; trawl through the data releases
@@ -262,6 +262,7 @@ endif
 
 mjdrange_p95=make_array(2, /double)
 if strlowcase(period) eq 'p95' then begin
+  splog, traceback(/verbose)
   for i=0,1 do begin
     message,/inf, period + 'date range:'
     mjdrange_p95[i]=$
@@ -275,7 +276,6 @@ if strlowcase(period) eq 'p95' then begin
    MJD_ISODATE(mjdrange_p95[0]) + '  ' + MJD_ISODATE(mjdrange_p95[1])
 
 endif
-
 
 
 mjdrange_vhsdr1=make_array(2, /double)
