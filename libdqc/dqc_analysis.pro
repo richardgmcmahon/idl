@@ -222,8 +222,8 @@ endif
 
 if keyword_set(esoperiod) then begin
 
-  upto_period=-1
-  from_period=-1
+  upto_period = -1
+  from_period = -1
 
   message,/inf,traceback()
   print, 'n_elements(esoperiod): ', n_elements(esoperiod)
@@ -232,28 +232,38 @@ if keyword_set(esoperiod) then begin
   nperiods=n_elements(esoperiod)
  
   if nperiods eq 1 then begin
+    splog, traceback()
+    print, 'esoperoid:', esoperiod
     ipos=strpos(strlowcase(esoperiod), 'p')
     print, 'ipos: ', ipos
     if ipos gt 0 then begin
       ipos=strpos(strlowcase(esoperiod), 't')
-      if ipos ge 0 then upto_period=1
+      if ipos ge 0 then begin
+          upto_period=1
+          print, 'upto_period:', upto_period
+      endif
       ipos=strpos(strlowcase(esoperiod), 'f')
-      if ipos ge 0 then from_period=1
+      if ipos ge 0 then begin
+          from_period=1
+          print, 'from_period:', from_period
+      endif
     endif
+
     ipos=strpos(strlowcase(esoperiod), 'p')
     esoperiod_lower=strmid(esoperiod, ipos)
     message,/inf,'ESO period: ' + esoperiod
 
     ipos=strpos(strlowcase(esoperiod), 'p')
     print, 'ipos: ', ipos
-    if ipos gt 0 then upto_period=1
+    if ipos gt 0 then upto_period = 1
     esoperiod_lower=strmid(esoperiod, ipos)
     message,/inf,'ESO period: ' + esoperiod
 
+    splog, traceback()
+
   endif
 
-  pause,batch=batch
-
+  pause, batch=batch
 
   if nperiods eq 2 then begin
     esoperiod_lower=esoperiod[0]
@@ -275,6 +285,7 @@ if keyword_set(esoperiod) then begin
   pause, batch=batch
 
   if upto_period gt 0 then begin
+    print, 'Get dates upto Period:', esoperiod_upper
     set_mjdrange_vista, mjdrange_test, period='dryrun'
     mjdrange[0]=mjdrange_test[0]
   endif
