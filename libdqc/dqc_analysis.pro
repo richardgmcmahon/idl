@@ -256,15 +256,7 @@ if keyword_set(esoperiod) then begin
       endif
     endif
 
-    ipos=strpos(strlowcase(esoperiod), 'p')
-    print, 'ipos: ', ipos
-    esoperiod  = strmid(esoperiod, ipos)
-    message,/inf,'ESO period: ' + esoperiod
-
   endif
-
-  print, 'Type any chatacter to contine >'
-  key = get_kbrd(1)
 
   if nperiods eq 2 then begin
     esoperiod_lower=esoperiod[0]
@@ -282,9 +274,9 @@ if keyword_set(esoperiod) then begin
   if upto_period gt 0 then begin
     print, 'Get dates for upto Period: ', esoperiod_upper
     set_mjdrange_vista, mjdrange_test, period='dryrun'
-    mjdrange[0]=mjdrange_test[0]
+    mjdrange[0] = mjdrange_test[0]
     set_mjdrange_vista, mjdrange_test, period=esoperiod_upper
-    mjdrange[1]=mjdrange_test[1]
+    mjdrange[1] = mjdrange_test[1]
     print, 'mjdrange: ', mjdrange
   endif
 
