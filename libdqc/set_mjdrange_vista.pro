@@ -1,4 +1,5 @@
-pro set_mjdrange_vista,mjdrange,period=period,verbose=verbose,help=help
+pro set_mjdrange_vista, mjdrange, period=period, $
+    verbose=verbose, help=help
 ;+
 ; NAME:
 ;       SET_MJDRANGE_VISTA
@@ -326,6 +327,7 @@ ENDIF
 mjdrange=mjdrange_all
 dr=''
 if n_elements(period) gt 0 then begin
+  if strlowcase(period) eq 'dryrun' then mjdrange=mjdrange_p84
   if strlowcase(period) eq 'p84' then mjdrange=mjdrange_p84
   if strlowcase(period) eq 'p85' then mjdrange=mjdrange_p85
   if strlowcase(period) eq 'p86' then mjdrange=mjdrange_p86
@@ -337,6 +339,8 @@ if n_elements(period) gt 0 then begin
   if strlowcase(period) eq 'p92' then mjdrange=mjdrange_p92
   if strlowcase(period) eq 'p93' then mjdrange=mjdrange_p93
   if strlowcase(period) eq 'p94' then mjdrange=mjdrange_p94
+  if strlowcase(period) eq 'p95' then mjdrange=mjdrange_p95
+  if strlowcase(period) eq 'p96' then mjdrange=mjdrange_p96
 
   if strlowcase(period) eq 'vhsdr1' then mjdrange=mjdrange_vhsdr1
 
