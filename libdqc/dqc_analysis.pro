@@ -100,8 +100,6 @@ COMPILE_OPT IDL2
 ; needed for splog logger
 common com_splog, loglun, fullprelog
 
-
-
 if not keyword_set(verbose) then $
  message,/inf,'verbose = ' + 'false' 
 if keyword_set(verbose) then $
@@ -162,6 +160,7 @@ endif
 if keyword_set(verbose) then $
  message,/inf,'verbose = ' + 'true' + string(verbose)
 
+message,/inf,'filename = ' + filename 
 if not keyword_set(wsa) then wsa=0
 if(strpos(filename,'casu')) gt 0 then wsa=0
 if(strpos(filename,'fs')) gt 0 then fs=1
@@ -216,7 +215,7 @@ if n_elements(dr) le 0 then begin
 endif
 
 if keyword_set(dr) then begin
-  set_mjdrange,mjdrange,dr=dr, verbose=verbose
+  set_mjdrange,mjdrange, dr=dr, verbose=verbose
   print,'Using date range: ',mjd_iso(mjdrange[0]),' : ',mjd_iso(mjdrange[1])
 endif
 
@@ -226,90 +225,83 @@ if keyword_set(esoperiod) then begin
   from_period = -1
 
   message,/inf,traceback()
-  print, 'n_elements(esoperiod): ', n_elements(esoperiod)
   splog,'ESO period: ', esoperiod
+  print, 'n_elements(esoperiod): ', n_elements(esoperiod)
 
-  nperiods=n_elements(esoperiod)
+  nperiods = n_elements(esoperiod)
  
   if nperiods eq 1 then begin
     splog, traceback()
-    print, 'esoperoid:', esoperiod
+    message,/inf,'ESO period: ' + esoperiod
     ipos=strpos(strlowcase(esoperiod), 'p')
     print, 'ipos: ', ipos
+
+    ; check for to or from period options
     if ipos gt 0 then begin
       ipos=strpos(strlowcase(esoperiod), 't')
       if ipos ge 0 then begin
-          upto_period=1
+          upto_period = 1
           print, 'upto_period:', upto_period
+          ipos=strpos(strlowcase(esoperiod), 'p')
+          esoperiod_upper = strmid(esoperiod, ipos)
+          print, 'esoperiod_upper: ', esoperiod_upper
       endif
       ipos=strpos(strlowcase(esoperiod), 'f')
       if ipos ge 0 then begin
           from_period=1
           print, 'from_period:', from_period
+          ipos=strpos(strlowcase(esoperiod), 'p')
+          esoperiod_lower = strmid(esoperiod, ipos)
+          print, 'esoperiod_lower:', esoperiod_lower
       endif
     endif
 
     ipos=strpos(strlowcase(esoperiod), 'p')
-    esoperiod_lower=strmid(esoperiod, ipos)
-    message,/inf,'ESO period: ' + esoperiod
-
-    ipos=strpos(strlowcase(esoperiod), 'p')
     print, 'ipos: ', ipos
-    if ipos gt 0 then upto_period = 1
-    esoperiod_lower=strmid(esoperiod, ipos)
+    esoperiod  = strmid(esoperiod, ipos)
     message,/inf,'ESO period: ' + esoperiod
-
-    splog, traceback()
 
   endif
 
-  pause, batch=batch
+  print, 'Type any chatacter to contine >'
+  key = get_kbrd(1)
 
   if nperiods eq 2 then begin
     esoperiod_lower=esoperiod[0]
     esoperiod_upper=esoperiod[1]
     splog, 'esoperiod_lower: ', esoperiod_lower
     splog, 'esoperiod_upper: ', esoperiod_upper
-  endif
+     
+    set_mjdrange_vista, mjdrange_lower, period=esoperiod_lower, verbose=verbose
+    mjdrange[0]=mjdrange_lower[0]     
 
-  pause, batch=batch
-
-  set_mjdrange_vista, mjdrange, period=esoperiod_lower, verbose=verbose
-  message,/inf,'ESO Period date ranges: ' + esoperiod 
-
-  if nperiods eq 2 then begin
     set_mjdrange_vista, mjdrange_upper, period=esoperiod_upper, verbose=verbose
     mjdrange[1]=mjdrange_upper[1]
   endif
 
-  pause, batch=batch
-
   if upto_period gt 0 then begin
-    print, 'Get dates upto Period:', esoperiod_upper
+    print, 'Get dates for upto Period: ', esoperiod_upper
     set_mjdrange_vista, mjdrange_test, period='dryrun'
     mjdrange[0]=mjdrange_test[0]
+    set_mjdrange_vista, mjdrange_test, period=esoperiod_upper
+    mjdrange[1]=mjdrange_test[1]
+    print, 'mjdrange: ', mjdrange
   endif
 
   if from_period gt 0 then begin
     mjdrange[1]=60000.0
   endif
 
-  if nperiods gt 0 then begin
-
   message,/inf, $
-   'MJD: ' + STRING(mjdrange[0]) + STRING(mjdrange[1]) 
+          'MJD: ' + STRING(mjdrange[0]) + STRING(mjdrange[1]) 
   message,/inf, 'ISO date: ' + $
-   MJD_ISODATE(mjdrange[0]) + '  ' + MJD_ISODATE(mjdrange[1])
-
+          MJD_ISODATE(mjdrange[0]) + '  ' + MJD_ISODATE(mjdrange[1])
 endif
 
-
-pause, batch=batch
-
-end
+print, 'Type any chatacter to contine >'
+key = get_kbrd(1)
 
 if keyword_set(debug) then pause
-
 
 
 ; VISTA SV date range

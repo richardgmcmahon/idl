@@ -102,16 +102,17 @@ endif
 
 despolygon=1
 if keyword_set(despolygon) then begin
-  splog,traceback()
-  despolyfile='/home/rgm/soft/des/round13-poly.txt'
+  splog, traceback()
+  despolyfile = '/home/rgm/soft/des/round13-poly.txt'
   print, 'despolyfile: ', despolyfile
-  test=file_test(despolyfile)
+  test = file_test(despolyfile)
+  print, 'test: ', test
   if test eq 0 then begin
     message,'despolygon file does not exist'
   endif
-  format='(d,d)' 
+  format = '(d,d)'
   readcol, despolyfile, format=format, $
-   ra_despolygon, dec_despolygon
+      ra_despolygon, dec_despolygon
 
   ra_despolygon=ra_despolygon/15.0
   print, 'RA range:  ', minmax(ra_despolygon)
@@ -506,31 +507,38 @@ if format eq 'dqc' then begin
   endif
 
   splog, traceback()
-  ;if not keyword_set(vsa) then begin
-  ; unique filenames
-  itest=UNIQ(data.filename, SORT(data.filename))
-  n_filename_unique=n_elements(itest)
-  splog, 'Total number of unique filenames:  ',n_filename_unique
-  
+  if not keyword_set(vsa) then begin
+    ; unique filenames
+    itest=UNIQ(data.filename, SORT(data.filename))
+    n_filename_unique=n_elements(itest)
+    splog, 'Total number of unique filenames:  ',n_filename_unique
+   endif
+
+  if keyword_set(vsa) then begin
+    itest=UNIQ(data.yfilename, SORT(data.yfilename))
+    n_filename_unique=n_elements(itest)
+    splog, 'Total number of Y band unique filenames:  ',n_filename_unique
+  endif
 
   ; unique OB IDS
-  itest=UNIQ(data.obsid, SORT(data.obsid))
-  n_ob_unique=n_elements(itest)
-  tmpdata=data[itest]
-  logstring= 'Total number of unique OBs: ' + string(n_ob_unique)
-  printf, ilun_sumfile, logstring
-  splog, logstring
+  if not keyword_set(vsa) then begin
+    itest=UNIQ(data.obsid, SORT(data.obsid))
+    n_ob_unique=n_elements(itest)
+    tmpdata=data[itest]
+    logstring= 'Total number of unique OBs: ' + string(n_ob_unique)
+    printf, ilun_sumfile, logstring
+    splog, logstring
 
-  itag_mjd=tag_indx(data,'mjd')
-  if itag_mjd lt 0 then   itag_mjd=tag_indx(data,'mjdobs')
-  mjd_min=min(data.(itag_mjd))  
-  mjd_max=max(data.(itag_mjd))  
+    itag_mjd=tag_indx(data,'mjd')
+    if itag_mjd lt 0 then   itag_mjd=tag_indx(data,'mjdobs')
+    mjd_min=min(data.(itag_mjd))  
+    mjd_max=max(data.(itag_mjd))  
 
-  message,/inf, $
-   'MJD: ' + STRING(mjd_min) + STRING(mjd_max) 
-  message,/inf, 'ISO date: ' + $
-   MJD_ISODATE(mjd_min) + '  ' + MJD_ISODATE(mjd_max)
-
+    message,/inf, $
+     'MJD: ' + STRING(mjd_min) + STRING(mjd_max) 
+    message,/inf, 'ISO date: ' + $
+      MJD_ISODATE(mjd_min) + '  ' + MJD_ISODATE(mjd_max)
+  endif 
 
   structure_info, data, /sort
   splog, traceback()
