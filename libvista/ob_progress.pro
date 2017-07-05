@@ -187,9 +187,13 @@ endif
 ; read in the VIKING DQC file
 if keyword_set(viking) then begin
 
-  vikpath='/data/vhs/dqc/2012/'
-  vikfile='vistaqc_20120630_pawprints_viking_thin.fits'
-  infile_viking=vikpath + vikfile
+  vikpath = '/data/vhs/dqc/2012/'
+  vikfile = 'vistaqc_20120630_pawprints_viking_thin.fits'
+
+  vikpath = '/data/vhsardata/VIKING/'
+  vikfile = 'VIKINGv20161202_thin_sources.fits'
+  
+  infile_viking = vikpath + vikfile
   viking=mrdfits(infile_viking,1,hr)
   print, minmax(viking.ra)
   print, minmax(viking.dec)

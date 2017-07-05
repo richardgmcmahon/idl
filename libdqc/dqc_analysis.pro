@@ -215,7 +215,7 @@ if n_elements(dr) le 0 then begin
 endif
 
 if keyword_set(dr) then begin
-  set_mjdrange,mjdrange, dr=dr, verbose=verbose
+  set_mjdrange, mjdrange, dr=dr, verbose=verbose
   print,'Using date range: ',mjd_iso(mjdrange[0]),' : ',mjd_iso(mjdrange[1])
 endif
 
@@ -258,6 +258,8 @@ if keyword_set(esoperiod) then begin
 
   endif
 
+  pause
+
   if nperiods eq 2 then begin
     esoperiod_lower=esoperiod[0]
     esoperiod_upper=esoperiod[1]
@@ -270,6 +272,8 @@ if keyword_set(esoperiod) then begin
     set_mjdrange_vista, mjdrange_upper, period=esoperiod_upper, verbose=verbose
     mjdrange[1]=mjdrange_upper[1]
   endif
+
+  pause
 
   if upto_period gt 0 then begin
     print, 'Get dates for upto Period: ', esoperiod_upper
@@ -290,8 +294,7 @@ if keyword_set(esoperiod) then begin
           MJD_ISODATE(mjdrange[0]) + '  ' + MJD_ISODATE(mjdrange[1])
 endif
 
-print, 'Type any chatacter to contine >'
-key = get_kbrd(1)
+pause
 
 if keyword_set(debug) then pause
 
