@@ -42,16 +42,16 @@ pro ob_progress, infile=infile, vsa=vsa, wfau=wfau, wsa=wsa, casu=casu, $
 ;container_id seeing sky_transparency
 ;
 ;
-; Status ’+’ (Accepted)
-; Status ’-’ (Rejected)
-; Status ’A’ (Aborted)
-; Status ’C’ (Completed)
-; Status ’D’ (Defined)
+; Status ’+’  (Accepted)
+; Status ’-’  (Rejected)
+; Status ’A’  (Aborted)
+; Status ’C’  (Completed)
+; Status ’D’  (Defined)
 ; Status 'K' (Cancelled)
-; Status ’M’ (Must repeat)
-; Status ’P’ (Partially defined)
-; Status ’S’ (Started)
-; Status 'X' 
+; Status ’M’  (Must repeat)
+; Status ’P’  (Partially defined)
+; Status ’S’  (Started)
+; Status 'X' (Not sure)
 ;
 ; NAME:
 ;       ob_progress
