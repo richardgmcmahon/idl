@@ -184,7 +184,7 @@ if keyword_set(desfile) then begin
 
 endif
 
-; read in the VIKING DQC file
+; read in the VIKING DQC or source list rad, dec file
 if keyword_set(viking) then begin
 
   vikpath = '/data/vhs/dqc/2012/'
@@ -192,11 +192,18 @@ if keyword_set(viking) then begin
 
   vikpath = '/data/vhsardata/VIKING/'
   vikfile = 'VIKINGv20161202_thin_sources.fits'
-  
+  viking_radec_units = 'radian'  
+
   infile_viking = vikpath + vikfile
-  viking=mrdfits(infile_viking,1,hr)
+  viking = mrdfits(infile_viking,1,hr)
   print, minmax(viking.ra)
   print, minmax(viking.dec)
+
+  if viking_radec_units eq 'radian' then begin
+    print, minmax(viking.ra*!dradeg/15.0)
+    print, minmax(viking.dec*!dradeg)
+  endif
+
   pause, batch=batch
 
 endif
@@ -1398,8 +1405,40 @@ if keyword_set(polyfill) then $
 if keyword_set(polyfill) and keyword_set(viking) then begin
  ;plot_vistatile, xdata=viking.ra, ydata=viking.dec, $
  ; color=fsc_color('red')
- oplot, viking.ra/15.0, viking.dec, $
+ xdata = viking.ra/15.0
+ ydata = viking.dec
+ print, viking_radec_units
+ if viking_radec_units eq 'radian' then begin
+    xdata = (viking.ra*!dradeg)/15.0
+    ydata = viking.dec*!dradeg
+ endif
+
+ print, min(xdata), max(xdata)
+ print, min(ydata), max(ydata)
+ pause
+ oplot, xdata, ydata, $
   psym=symcat(15), color=fsc_color('red'), symsize=1.0
+
+endif
+
+
+if not keyword_set(polyfill) and keyword_set(viking) then begin
+ ;plot_vistatile, xdata=viking.ra, ydata=viking.dec, $
+ ; color=fsc_color('red')
+ xdata = viking.ra/15.0
+ ydata = viking.dec
+ print, viking_radec_units
+ if viking_radec_units eq 'radian' then begin
+    xdata = (viking.ra*!dradeg)/15.0
+    ydata = viking.dec*!dradeg
+ endif
+
+ print, min(xdata), max(xdata)
+ print, min(ydata), max(ydata)
+ pause
+ oplot, xdata, ydata, $
+  psym=symcat(3), color=fsc_color('red'), symsize=1.0
+
 endif
 
 if keyword_set(polyfill) and keyword_set(video) then begin
